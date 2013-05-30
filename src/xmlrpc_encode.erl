@@ -108,6 +108,16 @@ encode({base64, Base64}) ->
 %	no -> {error, {bad_base64, Base64}}
 %    end;
     ["<base64>", Base64, "</base64>"];
+encode(Unicode) when is_list(Unicode) ->
+    case io_lib:printable_unicode_list(Unicode) of
+        true -> 
+            Binary = binary_to_list(unicode:characters_to_binary(Unicode)),
+            case xmlrpc_util:is_string(Binary) of         
+                yes -> ["<string>", escape_string(Binary), "</string>"];
+                no -> {error, {bad_unicode_value, Binary}}   
+            end;
+        false ->  {error, {bad_unicode_value, Unicode}}
+    end;
 encode(Value) ->
     case xmlrpc_util:is_string(Value) of
 	yes -> ["<string>", escape_string(Value), "</string>"];
